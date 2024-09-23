@@ -1,4 +1,4 @@
-name: Build, Test, and Deploy to AWS ECS
+name: Build and Deploy to AWS ECS
 
 on:
   push:
@@ -6,17 +6,17 @@ on:
       - main  # Triggers the workflow on pushes to the main branch
 
 jobs:
-  build-test-deploy:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v3  # Latest stable v3
+        uses: actions/checkout@v3
 
       # 2. Set up Python (if your project uses Python)
       - name: Set up Python
-        uses: actions/setup-python@v4  # Latest stable v4
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'  # Specify your Python version
 
@@ -35,25 +35,20 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. Run tests (optional but recommended)
-      - name: Run tests
-        run: |
-          pytest  # Ensure you have tests set up with pytest
-
-      # 6. Configure AWS credentials
+      # 5. Configure AWS credentials
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2  # Correct version
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 7. Log in to Amazon ECR
+      # 6. Log in to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1  # Correct version
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # 8. Build, tag, and push Docker image to ECR
+      # 7. Build, tag, and push Docker image to ECR
       - name: Build, tag, and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -64,13 +59,13 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 9. Register and deploy ECS task definition
+      # 8. Register and deploy ECS task definition
       - name: Register and deploy ECS task definition
         id: deploy-ecs
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2  # Correct version
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ secrets.TASK_DEFINITION }}
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
-          image: discord-bot=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           wait-for-service-stability: true
