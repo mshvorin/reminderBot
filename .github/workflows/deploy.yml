@@ -43,3 +43,4 @@ jobs:
           cluster: ${{ secrets.CLUSTER }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           wait-for-service-stability: true
+
