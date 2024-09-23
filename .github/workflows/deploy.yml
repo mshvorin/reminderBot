@@ -72,5 +72,5 @@ jobs:
           task-definition: ${{ secrets.TASK_DEFINITION }}
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          image: discord-bot=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           wait-for-service-stability: true
