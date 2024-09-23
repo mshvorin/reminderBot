@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository
+      # 1. Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Latest stable v3
 
       # 2. Set up Python (if your project uses Python)
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4  # Latest stable v4
         with:
           python-version: '3.9'  # Specify your Python version
 
@@ -28,16 +28,16 @@ jobs:
 
       # 4. Configure AWS credentials
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v2  # Latest stable v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. Login to Amazon ECR
+      # 5. Log in to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2  # Updated to v2 for better handling
+        uses: aws-actions/amazon-ecr-login@v2  # Latest stable v2
 
       # 6. Build, tag, and push Docker image to ECR
       - name: Build, tag, and push Docker image to ECR
@@ -57,9 +57,9 @@ jobs:
 
       # 8. Register and deploy ECS Task Definition
       - name: Register and deploy ECS Task Definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2  # Latest stable v2
         with:
-          task-definition: ecs-task-def.json  # Ensure this path is correct
+          task-definition: ecs-task-def.json  # Path to your task definition file
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
           wait-for-service-stability: true
