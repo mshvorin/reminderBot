@@ -1,4 +1,4 @@
-name: Build and Deploy to AWS ECS
+name: Build, Deploy to AWS ECS
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository code
+      # 1. Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -20,22 +20,13 @@ jobs:
         with:
           python-version: '3.9'  # Specify your Python version
 
-      # 3. Cache pip dependencies (optional but recommended)
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # 4. Install dependencies
+      # 3. Install dependencies (if your project uses Python)
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. Configure AWS credentials
+      # 4. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -43,12 +34,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6. Log in to Amazon ECR
+      # 5. Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2  # Updated to v2 for better handling
 
-      # 7. Build, tag, and push Docker image to ECR
+      # 6. Build, tag, and push Docker image to ECR
       - name: Build, tag, and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -59,13 +50,16 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 8. Register and deploy ECS task definition
-      - name: Register and deploy ECS task definition
-        id: deploy-ecs
+      # 7. Update ECS Task Definition with the new image
+      - name: Update ECS Task Definition with new image
+        run: |
+          sed -i "s|<IMAGE>|${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|g" ecs-task-def.json
+
+      # 8. Register and deploy ECS Task Definition
+      - name: Register and deploy ECS Task Definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ${{ secrets.TASK_DEFINITION }}
+          task-definition: ecs-task-def.json  # Ensure this path is correct
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           wait-for-service-stability: true

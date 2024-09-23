@@ -1,0 +1,40 @@
+{
+  "family": "discord-bot-task",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "discord-bot-container",
+      "image": "<IMAGE>",
+      "cpu": 256,
+      "memory": 512,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ],
+      "environment": [
+        {
+          "name": "DISCORD_TOKEN",
+          "value": "${DISCORD_TOKEN}"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "${AWS_ACCESS_KEY_ID}"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "${AWS_SECRET_ACCESS_KEY}"
+        }
+      ]
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/ecsTaskRole"
+}
