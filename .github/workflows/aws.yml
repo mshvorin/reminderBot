@@ -36,15 +36,15 @@ jobs:
 
       - name: Register ECS task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-register-task-definition@v2
+        uses: aws-actions/amazon-ecs-register-task-definition@v1
         with:
           family: ${{ secrets.TASK_DEFINITION }}
           container-name: discord-bot
           container-image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-          # If your task definition requires environment variables or other configurations, add them here
+          # Add other necessary configurations like environment variables, ports, etc., if needed
 
       - name: Deploy to ECS service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ secrets.SERVICE }}
