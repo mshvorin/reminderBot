@@ -3,7 +3,7 @@ name: Build and Deploy to AWS ECS
 on:
   push:
     branches:
-      - main  # Trigger the workflow on pushes to the main branch
+      - main  # Triggers the workflow on pushes to the main branch
 
 jobs:
   build-and-deploy:
@@ -34,19 +34,12 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Register ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-register-task-definition@v2
-        with:
-          family: ${{ secrets.TASK_DEFINITION }}
-          container-name: discord-bot
-          container-image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-          # If your task definition requires environment variables or other configurations, add them here
-
-      - name: Deploy to ECS service
+      - name: Register and deploy ECS task definition
+        id: deploy-ecs
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          task-definition: ${{ secrets.TASK_DEFINITION }}
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           wait-for-service-stability: true
