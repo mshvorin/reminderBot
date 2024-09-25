@@ -69,14 +69,14 @@ jobs:
           cp ecs-task-def.json ecs-task-def-temp.json
           IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
           jq --arg image "$IMAGE_URI" \
-             --arg disc_token "${{ secrets.DISCORD_TOKEN }}" \
-             --arg openai_token "${{ secrets.OPENAI }}" \
-             --arg mongo_pass "${{ secrets.MONGOPASS }}" \
+             --arg disc_token_arn "${{ secrets.DISCORD_TOKEN }}" \
+             --arg openai_arn "${{ secrets.OPENAI }}" \
+             --arg mongo_pass_arn "${{ secrets.MONGOPASS }}" \
              '
              .containerDefinitions[0].image = $image |
-             (.containerDefinitions[0].secrets[] | select(.name == "DISCORD_TOKEN").valueFrom) = $disc_token |
-             (.containerDefinitions[0].secrets[] | select(.name == "OPENAI").valueFrom) = $openai_token |
-             (.containerDefinitions[0].secrets[] | select(.name == "MONGOPASS").valueFrom) = $mongo_pass
+             (.containerDefinitions[0].secrets[] | select(.name == "DISCORD_TOKEN").valueFrom) = $DISCORD_TOKEN |
+             (.containerDefinitions[0].secrets[] | select(.name == "OPENAI").valueFrom) = $OPENAI |
+             (.containerDefinitions[0].secrets[] | select(.name == "MONGOPASS").valueFrom) = $MONGOPASS
              ' ecs-task-def-temp.json > ecs-task-def-updated.json
           mv ecs-task-def-updated.json ecs-task-def-temp.json
 
