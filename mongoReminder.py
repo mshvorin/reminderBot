@@ -243,5 +243,5 @@ async def on_ready():
         send_task_reminders.start()
 
 # Run the bot
-disc = os.getenv("DISC")
+disc = os.getenv("DISCORD_TOKEN")
 bot.run(disc)
