@@ -6,7 +6,7 @@
   "containerDefinitions": [
     {
       "name": "mongoReminder-container",
-      "image": "965432218846.dkr.ecr.us-east-1.amazonaws.com/discord-bot:latest",
+      "image": "<IMAGE>",
       "cpu": 256,
       "memory": 512,
       "essential": true,
