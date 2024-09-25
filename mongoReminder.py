@@ -27,6 +27,7 @@ db = client.reminders.activities
 # Initialize Discord Bot
 bot = commands.Bot(command_prefix='~', help_command=None, intents=discord.Intents.all())
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
