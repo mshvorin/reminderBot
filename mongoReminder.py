@@ -70,47 +70,115 @@ async def complete_activity(ctx, *, activity: str):
         await ctx.send(f'Error: Activity "{activity}" not found or already completed.')
 
 @bot.command(name='clear')
-async def clear_assignments(ctx):
+async def clear_activities(ctx):
     user_id = ctx.author.id
 
-    # Delete all assignments for the user from MongoDB
-    result = db.delete_many({"user_id": user_id})
+    # Send warning message and await confirmation
+    warning_message = (
+        "**⚠️ Warning: This action will fully clear all your activities, both pending and completed.**\n"
+        "This will also reset your position on the leaderboard, and **this action cannot be undone.**\n"
+        "If you're sure you want to proceed, type `confirm` to continue, or `cancel` to stop."
+    )
+    await ctx.send(warning_message)
 
-    await ctx.send('All your assignments have been cleared successfully!')
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() in ['confirm', 'cancel']
+
+    # Wait for the user's response
+    try:
+        confirmation = await bot.wait_for('message', check=check, timeout=30.0)  # 30-second timeout
+        if confirmation.content.lower() == 'confirm':
+            # Delete all activities for the user from MongoDB
+            result = db.delete_many({"user_id": user_id})
+            await ctx.send('✅ All your activities have been fully cleared, and your leaderboard progress has been reset.')
+        else:
+            await ctx.send('❌ Activity clearing has been canceled.')
+    except TimeoutError:
+        await ctx.send('⏳ Time out! Activity clearing request has been canceled.')
+
 
 @bot.command(name='viewactive')
-async def view_activities(ctx):
+async def view_active(ctx):
     user_id = ctx.author.id
 
-    # Retrieve all activities for the user from MongoDB
-    activities = db.find({"user_id": user_id})
+    # Retrieve only active (pending) activities for the user from MongoDB
+    activities = db.find({"user_id": user_id, "completed": False})
 
     activities_info = "\n".join(
-        [f"• {activity['activity']}: {'Completed' if activity['completed'] else 'Pending'}"
+        [f"• {activity['activity']} - Due on {activity['due_date'].strftime('%Y-%m-%d')}"
          for activity in activities]
     )
 
     if activities_info:
-        await ctx.send(f"**Your Activities:**\n{activities_info}")
+        await ctx.send(f"**Your Pending Activities:**\n{activities_info}")
     else:
-        await ctx.send('No activities found.')
+        await ctx.send('No pending activities found.')
 
-@bot.command(name='helppls')
-async def helpFunc(ctx):
+
+@bot.command(name='viewcompleted')
+async def view_completed(ctx):
+    user_id = ctx.author.id
+
+    # Retrieve only completed activities for the user from MongoDB
+    activities = db.find({"user_id": user_id, "completed": True})
+
+    activities_info = "\n".join(
+        [f"• {activity['activity']} - Completed on {activity['due_date'].strftime('%Y-%m-%d')}"
+         for activity in activities]
+    )
+
+    if activities_info:
+        await ctx.send(f"**Your Completed Activities:**\n{activities_info}")
+    else:
+        await ctx.send('No completed activities found.')
+
+
+@bot.command(name='help')
+async def help(ctx):
     help_message = """
-    **Available Commands:**
-    - `~addactivity YYYY-MM-DD Activity Description`: Add a new activity with a due date.
-    - `~complete Activity Description`: Mark a specific activity as completed.
-    - `~clear`: Clear your completed assignments.
-    - `~leaderboard`: View the leaderboard of completed activities.
-    - `~helppls`: Show this help message.
+    **📋 Available Commands:**
 
-    **Command Usage:**
-    - To add an activity: `~addactivity 2023-12-31 homeworkAssignment.`
-    - To complete an activity: `~complete homeworkAssignment.`
-    - To clear your completed assignments: `~clear`
-    - To view the leaderboard: `~leaderboard`
-    - To view this help message: `~helppls`
+    **Activities Management:**
+    - `~addactivity <YYYY-MM-DD> <Activity Description>`  
+      ➡️ *Add a new activity with a specific due date.*  
+      Example: `~addactivity 2024-10-01 Finish report.`
+
+    - `~complete <Activity Description>`  
+      ➡️ *Mark an activity as completed.*  
+      Example: `~complete Finish report.`
+
+    - `~viewactive`  
+      ➡️ *View all your current pending activities.*
+
+    - `~viewcompleted`  
+      ➡️ *View all your completed activities.*
+
+    - `~clear`  
+      ➡️ *Clear all your activities (both pending and completed). This will also reset your leaderboard progress.*  
+      **⚠️ Warning:** You will be asked to confirm this action, as it cannot be undone.
+
+    **Fun and AI Features:**
+    - `~ask <Your Question>`  
+      ➡️ *Ask any question and get an AI-generated response powered by OpenAI.*  
+      Example: `~ask What is the meaning of life?`
+
+    **Leaderboard:**
+    - `~leaderboard`  
+      ➡️ *View the leaderboard of users with the most completed activities.*
+
+    **Bot Assistance:**
+    - `~help`  
+      ➡️ *Show this help message.*
+
+    **Command Usage Quick Reference:**
+    - To add an activity: `~addactivity 2024-10-01 Finish report.`
+    - To mark an activity as complete: `~complete Finish report.`
+    - To view your pending tasks: `~viewactive`
+    - To view your completed tasks: `~viewcompleted`
+    - To clear all tasks: `~clear`
+    - To ask an AI question: `~ask What's the weather like today?`
+    - To see the leaderboard: `~leaderboard`
+    - To see this help message: `~help`
     """
     await ctx.send(help_message)
 
