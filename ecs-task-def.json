@@ -1,12 +1,12 @@
 {
   "family": "discord-bot-task",
-  "executionRoleArn": "arn:aws:iam::965432218846:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::965432218846:role/ecsTaskRole",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskRole",
   "networkMode": "awsvpc",
   "containerDefinitions": [
     {
-      "name": "discord-bot-container-mshvorin",
-      "image": "<IMAGE>",
+      "name": "discord-bot-container",
+      "image": "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}",
       "cpu": 256,
       "memory": 512,
       "essential": true,
@@ -36,5 +36,12 @@
     "FARGATE"
   ],
   "cpu": "256",
-  "memory": "512"
+  "memory": "512",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": ["subnet-xxxxxxxx", "subnet-yyyyyyyy"],  // Replace with your actual subnet IDs
+      "securityGroups": ["sg-xxxxxxxx"],  // Replace with your security group ID
+      "assignPublicIp": "ENABLED"
+    }
+  }
 }
