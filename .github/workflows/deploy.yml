@@ -1,4 +1,4 @@
-name: Build, Deploy to AWS ECS
+name: Build and Deploy to AWS ECS
 
 on:
   push:
@@ -12,13 +12,13 @@ jobs:
     steps:
       # 1. Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v3  # Latest stable v3
+        uses: actions/checkout@v3  # Latest stable version
 
       # 2. Set up Python (if your project uses Python)
       - name: Set up Python
-        uses: actions/setup-python@v4  # Latest stable v4
+        uses: actions/setup-python@v4  # Latest stable version
         with:
-          python-version: '3.9'  # Specify your Python version
+          python-version: '3.9'  # Specify the Python version your project needs
 
       # 3. Install dependencies (if your project uses Python)
       - name: Install dependencies
@@ -28,7 +28,7 @@ jobs:
 
       # 4. Configure AWS credentials
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2  # Latest stable v2
+        uses: aws-actions/configure-aws-credentials@v2  # Latest stable version
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -37,7 +37,7 @@ jobs:
       # 5. Log in to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2  # Latest stable v2
+        uses: aws-actions/amazon-ecr-login@v2  # Latest stable version
 
       # 6. Build, tag, and push Docker image to ECR
       - name: Build, tag, and push Docker image to ECR
@@ -55,7 +55,7 @@ jobs:
         run: |
           sed -i "s|<IMAGE>|${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|g" ecs-task-def.json
 
-      # 8. Stop current running tasks (optional)
+      # 8. Stop current running tasks (optional, for zero-downtime deployments, skip this step)
       - name: Stop current running ECS tasks
         run: |
           aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 0
@@ -70,7 +70,7 @@ jobs:
           cluster: ${{ secrets.CLUSTER }}
           wait-for-service-stability: true
 
-      # 10. Scale service back up to the desired count (after new task is deployed)
+      # 10. Scale ECS service back to the desired count (after new task is deployed)
       - name: Scale ECS service back to desired count
         run: |
           aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 1
