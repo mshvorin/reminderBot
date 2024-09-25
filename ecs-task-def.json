@@ -29,7 +29,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/mongoReminder",
+          "awslogs-group": "/ecs/discord-bot-task",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
