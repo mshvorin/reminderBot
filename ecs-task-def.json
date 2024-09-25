@@ -1,12 +1,12 @@
 {
-  "family": "mongoReminder-task",
+  "family": "discord-bot-task",
   "executionRoleArn": "arn:aws:iam::965432218846:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::965432218846:role/ecsTaskRole",
   "networkMode": "awsvpc",
   "containerDefinitions": [
     {
       "name": "mongoReminder-container",
-      "image": "965432218846.dkr.ecr.us-east-1.amazonaws.com/mongoReminder:latest",
+      "image": "965432218846.dkr.ecr.us-east-1.amazonaws.com/discord-bot:latest",
       "cpu": 256,
       "memory": 512,
       "essential": true,
