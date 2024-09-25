@@ -27,7 +27,7 @@ db = client.reminders.activities
 # Initialize Discord Bot
 bot = commands.Bot(command_prefix='~', help_command=None, intents=discord.Intents.all())
 
-
+print("v2")
 
 @bot.event
 async def on_ready():
