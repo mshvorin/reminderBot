@@ -182,6 +182,7 @@ async def help(ctx):
     """
     await ctx.send(help_message)
 
+
 @bot.command(name='ask')
 async def ask_question(ctx, *, question: str):
     try:
