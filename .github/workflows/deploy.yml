@@ -12,34 +12,22 @@ jobs:
     steps:
       # 1. Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v3  # Latest stable version
+        uses: actions/checkout@v3
 
-      # 2. Set up Python (if your project uses Python)
-      - name: Set up Python
-        uses: actions/setup-python@v4  # Latest stable version
-        with:
-          python-version: '3.9'  # Specify the Python version your project needs
-
-      # 3. Install dependencies (if your project uses Python)
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # 4. Configure AWS credentials
+      # 2. Configure AWS credentials
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2  # Latest stable version
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. Log in to Amazon ECR
+      # 3. Log in to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2  # Latest stable version
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # 6. Build, tag, and push Docker image to ECR
+      # 4. Build, tag, and push Docker image to ECR
       - name: Build, tag, and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -50,28 +38,16 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 7. Update ECS Task Definition with the new image
+      # 5. Update ECS Task Definition with the new image
       - name: Update ECS Task Definition with new image
         run: |
           sed -i "s|<IMAGE>|${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|g" ecs-task-def.json
 
-      # 8. Stop current running tasks (optional, for zero-downtime deployments, skip this step)
-      - name: Stop current running ECS tasks
-        run: |
-          aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 0
-          aws ecs wait services-stable --cluster ${{ secrets.CLUSTER }} --services ${{ secrets.SERVICE }}
-
-      # 9. Register and deploy ECS Task Definition
-      - name: Register and deploy ECS Task Definition
+      # 6. Deploy to ECS without downtime
+      - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ecs-task-def.json
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
           wait-for-service-stability: true
-
-      # 10. Scale ECS service back to the desired count (after new task is deployed)
-      - name: Scale ECS service back to desired count
-        run: |
-          aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 1
-          aws ecs wait services-stable --cluster ${{ secrets.CLUSTER }} --services ${{ secrets.SERVICE }}
