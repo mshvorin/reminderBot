@@ -1,12 +1,12 @@
 {
-  "family": "discord-bot-task",
+  "family": "mongoReminder-task",
   "executionRoleArn": "arn:aws:iam::965432218846:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::965432218846:role/ecsTaskRole",
   "networkMode": "awsvpc",
   "containerDefinitions": [
     {
-      "name": "discord-bot-container-mshvorin",
-      "image": "<IMAGE>",
+      "name": "mongoReminder-container",
+      "image": "965432218846.dkr.ecr.us-east-1.amazonaws.com/mongoReminder:latest",
       "cpu": 256,
       "memory": 512,
       "essential": true,
@@ -22,14 +22,18 @@
           "value": "${DISCORD_TOKEN}"
         },
         {
-          "name": "AWS_ACCESS_KEY_ID",
-          "value": "${AWS_ACCESS_KEY_ID}"
-        },
-        {
-          "name": "AWS_SECRET_ACCESS_KEY",
-          "value": "${AWS_SECRET_ACCESS_KEY}"
+          "name": "MONGODB_URI",
+          "value": "${MONGODB_URI}"
         }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/mongoReminder",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
     }
   ],
   "requiresCompatibilities": [
