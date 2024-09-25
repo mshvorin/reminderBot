@@ -16,16 +16,20 @@
           "hostPort": 80
         }
       ],
-      "environment": [
-        {
-          "name": "DISCORD_TOKEN",
-          "value": "${DISCORD_TOKEN}"
-        },
-        {
-          "name": "MONGODB_URI",
-          "value": "${MONGODB_URI}"
-        }
-      ],
+          "secrets": [
+  {
+      "name": "DISCORD_TOKEN",
+      "valueFrom": "DISCORD_TOKEN"
+    },
+    {
+      "name": "MONGOPASS",
+      "valueFrom": "MONGOPASS"
+    },
+    {
+      "name": "OPENAI",
+      "valueFrom": "OPENAI"
+    }
+  ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

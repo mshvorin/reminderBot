@@ -10,9 +10,6 @@ load_dotenv()
 # Load environment variables
 mongopass = os.getenv("MONGOPASS")
 openaipass = os.getenv("OPENAI")
-disc = os.getenv("DISC")
-
-
 
 # MongoDB Connection
 uri = f"mongodb+srv://mshvorin:{mongopass}@reminders.up5mauj.mongodb.net/?retryWrites=true&w=majority&appName=reminders"
@@ -243,5 +240,7 @@ async def on_ready():
         send_task_reminders.start()
 
 # Run the bot
-disc = os.getenv("DISCORD_TOKEN")
+disc = os.getenv("DISCORD_TOKEN").strip()
+if not disc:
+    raise ValueError("The DISCORD_TOKEN environment variable is not set or is empty.")
 bot.run(disc)
