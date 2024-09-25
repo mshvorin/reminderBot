@@ -55,11 +55,23 @@ jobs:
         run: |
           sed -i "s|<IMAGE>|${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|g" ecs-task-def.json
 
-      # 8. Register and deploy ECS Task Definition
+      # 8. Stop current running tasks (optional)
+      - name: Stop current running ECS tasks
+        run: |
+          aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 0
+          aws ecs wait services-stable --cluster ${{ secrets.CLUSTER }} --services ${{ secrets.SERVICE }}
+
+      # 9. Register and deploy ECS Task Definition
       - name: Register and deploy ECS Task Definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2  # Latest stable v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ecs-task-def.json  # Path to your task definition file
+          task-definition: ecs-task-def.json
           service: ${{ secrets.SERVICE }}
           cluster: ${{ secrets.CLUSTER }}
           wait-for-service-stability: true
+
+      # 10. Scale service back up to the desired count (after new task is deployed)
+      - name: Scale ECS service back to desired count
+        run: |
+          aws ecs update-service --cluster ${{ secrets.CLUSTER }} --service ${{ secrets.SERVICE }} --desired-count 1
+          aws ecs wait services-stable --cluster ${{ secrets.CLUSTER }} --services ${{ secrets.SERVICE }}
