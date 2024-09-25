@@ -24,5 +24,6 @@ COPY . .
 # Expose ports if necessary (Discord bots typically don't require this)
 # EXPOSE 8000
 
+
 # Command to run the bot
 CMD ["python", "mongoReminder.py"]
